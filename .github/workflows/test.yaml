@@ -1,30 +1,39 @@
 on:
-  push:
-    tags:
-      - 'v*'
-
+    push:
+      tags:
+        - 'v*'
 name: Create Release
-
 jobs:
-  build:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body: |
-            Changes in this Release:
-            - First Change
-            - Second Change
-          draft: false
-          prerelease: false
-
+    build:
+      name: Create Release
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+  
+        - name: Check Branch Name
+          id: check_branch
+          run: |
+            BRANCH_NAME=$(echo "${{ github.ref_name }}" | grep -E '(feat|feature)')
+            if [[ -n "$BRANCH_NAME" ]]; then
+              echo "BRANCH_MATCH=true" >> $GITHUB_ENV
+            else
+              echo "BRANCH_MATCH=false" >> $GITHUB_ENV
+            fi
+  
+        - name: Create Release
+          id: create_release
+          if: env.BRANCH_MATCH == 'true'
+          uses: actions/create-release@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            tag_name: ${{ github.ref_name }}
+            release_name: Release ${{ github.ref_name }}
+            body: |
+              Changes in this Release:
+              - First Change
+              - Second Change
+            draft: false
+            prerelease: false
+  
